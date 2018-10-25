@@ -1,0 +1,43 @@
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.Socket;
+
+
+
+class SocketHandlerThread extends Thread {
+  private Socket clientSocket;
+  private ActiveCount threadCount;
+
+  SocketHandlerThread(Socket s, ActiveCount threads) {
+    clientSocket = s;
+    threadCount = threads;
+  }
+
+  public void run() {
+    threadCount.incrementCount();
+    System.out.println("Accepted Client: Address - "
+        + clientSocket.getInetAddress().getHostName());
+    String clientID = "not set";
+    try {
+      BufferedReader   in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+      PrintWriter   out = new PrintWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+
+      clientID = in.readLine();
+      System.out.println("Client ID is :" + clientID);
+      out.println("Active Server Thread Count = " + Integer.toString( threadCount.getCount() ));
+      out.flush();
+      System.out.println("Reply sent to client: " + clientID);
+
+      in.close();
+      out.close();
+      clientSocket.close();
+    } catch (Exception e) {
+           e.printStackTrace();
+    }
+    threadCount.decrementCount();
+    System.out.println("Thread exiting for clientId: " + clientID);
+  }
+  
+} //end class
